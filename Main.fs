@@ -9,6 +9,7 @@ open ModelVerification
 open State
 
 let showHelp () =
+    printfn "mcBV 1.0 (C) Copyright 2016 Microsoft Corporation"
     printfn "Usage: mcbv.exe [options] <filename>"
     printfn "Options:"
     printfn "Capital letter sets the option ON, lower letter sets the option OFF [default]"
