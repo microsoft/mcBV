@@ -1,0 +1,1 @@
+mcBV requires [Z3](http://github.com/Z3Prover/Z3); specifically, libz3.dll and Microsoft.Z3.dll should be put into this directory. 
