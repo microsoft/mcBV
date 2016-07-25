@@ -218,14 +218,14 @@ let tbndsEvaluateAtLeast1U (s:State) (tRel:Ref<TheoryRelation>) =
     let pVal = s.bVal
     let rel = !tRel
     let boolVar = rel.getBoolVar
-    let bVal = (!pVal).getValueB boolVar
+    let bVal = (!pVal).getValueB boolVar    
 
     if bVal = Undefined then
         let holds = tbndsHolds (!tRel) s.bounds s.numeralDB
         if holds <> Undefined then
             let (expl, l) = tbndsGetImplication s tRel holds
             s.Push (Imp (ref expl, l))
-            assert(not s.IsConflicted || s.isInTempMode)
+            // assert(not s.IsConflicted || s.isInTempMode)
     else
         tbndsGetImpliedBounds s tRel bVal
 

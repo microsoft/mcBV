@@ -353,8 +353,7 @@ let tEvaluate1U (s:State) (tRel:Ref<TheoryRelation>) =
             let holds = tHolds (!tRel) s.bvVal s.numeralDB
             if holds <> Undefined then
                 let (expl, l) = tGetImplication s tRel holds
-                s.Push (Imp (ref expl, l))
-                assert(not s.IsConflicted)
+                s.Push (Imp (ref expl, l))                
 
     | Z3_decl_kind.Z3_OP_ULEQ ->
         let bVal = (!pVal).getValueB boolVar

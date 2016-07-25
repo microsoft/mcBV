@@ -462,18 +462,14 @@ type Trail (sz:int) =
                 else
                     // Negative PAPredicate
                     if not (value.isConcreteValue) then
-
                             let oldValue = (!bvVal).getValue v
                             let oldExpl = (!bvVal).getExplanation v
-                            let negPABool = Negate rel.getBoolVar
 
-                            let intersection =  BitVector.Intersect oldValue value
+                            let intersection = BitVector.Intersect oldValue value
 
                             if intersection.isInvalid then
-                                assert (oldExpl <> Negate negPABool)
-                                let cls = collectLiterals([ negPABool;
-                                                            Negate oldExpl;
-                                                            ])
+                                assert (oldExpl <> Negate l)
+                                let cls = collectLiterals([ Negate l; Negate oldExpl; ])
                                 cnflct <- Some (ref (newClauseFromList cls))
 
                             elif USE_BOUNDS then
