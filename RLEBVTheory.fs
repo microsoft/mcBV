@@ -353,25 +353,25 @@ let tEvaluate1U (s:State) (tRel:Ref<TheoryRelation>) =
             let holds = tHolds (!tRel) s.bvVal s.numeralDB
             if holds <> Undefined then
                 let (expl, l) = tGetImplication s tRel holds
-                s.Push (Imp (ref expl, l))                
+                s.Push (Imp (ref expl, l))
 
     | Z3_decl_kind.Z3_OP_ULEQ ->
         let bVal = (!pVal).getValueB boolVar
         let holds = tHolds (!tRel) s.bvVal s.numeralDB
         match bVal with
-        | True -> 
+        | True ->
             if holds = False then
                 let c = Negate (!tRel).getBoolVar :: (tGetAntecedents s tRel)
                 s.SetConflict (Some (ref (newClauseFromList c)))
             elif holds = True then
                 (!s.bVal).setValueT boolVar (!s.trail).getNumDecisions |> ignore
-        | False -> 
+        | False ->
             if holds = True then
                 let c = (!tRel).getBoolVar :: (tGetAntecedents s tRel)
                 s.SetConflict (Some (ref (newClauseFromList c)))
              elif holds = False then
                 (!s.bVal).setValueT (Negate boolVar) (!s.trail).getNumDecisions |> ignore
-        | _ ->  
+        | _ ->
                 if holds <> Undefined then
                     let (expl, l) = tGetImplication s tRel holds
                     s.Push (Imp (ref expl, l))

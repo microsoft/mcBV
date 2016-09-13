@@ -114,7 +114,7 @@ type Database = class
         assert(not (tDB.isIntroduced t))
         let index = tDB.add t
         (!this.Statistics).NewThLiteral()
-
+        
         for v in t.variableArguments do
             (!this.Watches).watchBV v index
         verbose <|  (lazy (sprintf "X New theory relation: %s" (t.ToString(this.Numerals))))

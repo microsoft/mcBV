@@ -1,6 +1,6 @@
 ﻿module Trail
 
-
+open Microsoft.Z3
 open Util
 open Stats
 open Interval
@@ -494,11 +494,11 @@ type Trail (sz:int) =
                     else //value.isConcreteValue
 
                         if USE_BOUNDS then
-                            
+
 //                            let oldBnds = ((!bounds).get v)
 //                            let negPABool = rel.getBoolVar
 //
-//                        
+//
 //                            // This is a special cross-theory case where
 //                            // a negatively asserted model assignment
 //                            // can refine the bounds slightly.
@@ -568,16 +568,6 @@ type Trail (sz:int) =
 ////                                     | _ -> ()
 //                                ()
                                     ()
-
-                         
-
-
-
-
-
-
-
-
 
 
             if USE_BOUNDS then
