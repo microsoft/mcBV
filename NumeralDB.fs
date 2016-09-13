@@ -49,7 +49,7 @@ type NumeralDB private (size:int) =
         if r.bv2int.ContainsKey(num) then
             -r.bv2int.[num]
         else
-            let id = r.next_unused
+            let mutable id = r.next_unused
             r.next_unused <- id + 1
             r.ensureSize (id + 1)
             assert(r.int2bv.[id].isInvalid)
@@ -75,14 +75,14 @@ type NumeralDB private (size:int) =
         assert(not r.inTempMode)
         assert(r.snapshot = -1)
         r.inTempMode <- true
-        r.snapshot <- r.int2bv.Length
+        r.snapshot <- r.next_unused
 
     member r.leaveTempMode =
         assert(r.inTempMode)
         assert(r.snapshot >= 0)
-        for i in r.snapshot .. r.int2bv.Length - 1 do            
-            r.int2bv.[i].Length <- 0
+        for i in r.snapshot .. r.int2bv.Length - 1 do
             r.bv2int.Remove r.int2bv.[i] |> ignore
+            r.int2bv.[i].markInvalid
         r.next_unused <- r.snapshot
         r.snapshot <- -1
         r.inTempMode <- false
