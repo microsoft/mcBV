@@ -18,7 +18,7 @@ let emptyClause = [|0;|]
 
 let getSize(c:Clause) = c.[0]
 let isEmptyClause (c:Clause) = getSize c = 0
-
+let getLiterals (c:Clause) = (Array.sub c 1 (getSize c))
 
 let normalizeLiteralList (cls:Literal list) =
     List.sortWith (fun x y -> lit2var y - lit2var x) cls

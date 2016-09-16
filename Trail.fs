@@ -12,6 +12,7 @@ open BooleanValuation
 open BitVectorValuation
 open BoundsValuation
 open Database
+open TheoryRelation
 open Learning
 
 let bumpOrder (db:Ref<Database>) (v:Var) =
@@ -238,10 +239,11 @@ type Trail (sz:int) =
                                     (connective:string)
                                     (clause:Ref<Clause>)
                                     =
-        for j in 1 .. (!clause).[0] do
+        let cls_sz = (getSize (!clause)) in
+        for j in 1 .. cls_sz do
             let i = (!clause).[j]
             let v = (lit2var i)
-            if j <> 1 then printf "       "
+            //if j <> 1 then printf "       "
             if (!(!db).Theory).isDefined v  then
                 if i < 0 then
                     printf "-"
@@ -251,7 +253,7 @@ type Trail (sz:int) =
             else
                 printf "%d" i
             printf " (L %02d)" (r.getLevelExpensive v)
-            if j < (!clause).[0] then
+            if j < cls_sz then
                 printfn " %s " connective
         printfn ""
 
@@ -469,12 +471,42 @@ type Trail (sz:int) =
 
                             if intersection.isInvalid then
                                 assert (oldExpl <> Negate l)
-                                let cls = collectLiterals([ Negate l; Negate oldExpl; ])
-                                cnflct <- Some (ref (newClauseFromList cls))
+
+                                // v_eq_old_value := v == oldValue
+                                //    oldExpl =>
+                                let v_eq_old_value = TheoryRelation(v, Z3_decl_kind.Z3_OP_EQ, (!db).mkNumeral oldValue)
+                                let oq = (!(!db).Theory).getThRelationVar v_eq_old_value
+                                let v_eq_old_value_lit = match oq with
+                                                         | (true, var) -> var
+                                                         | (false, _) ->
+                                                            let newBool = (!db).mkFreshBooleanVariable ()
+                                                            v_eq_old_value.setBoolvar newBool
+                                                            (!db).addTheoryRelation v_eq_old_value
+                                                            newBool
+
+                                // v_eq_value_lit := v == value
+                                // l => v_eq_value_lit
+                                let v_eq_value = TheoryRelation(v, Z3_decl_kind.Z3_OP_EQ, (!db).mkNumeral value)
+                                let nq = (!(!db).Theory).getThRelationVar v_eq_value
+                                let v_eq_value_lit = match nq with
+                                                     | (true, var) -> var
+                                                     | (false, _) ->
+                                                        let newBool = (!db).mkFreshBooleanVariable ()
+                                                        v_eq_value.setBoolvar newBool
+                                                        (!db).addTheoryRelation v_eq_value
+                                                        newBool
+
+                                // (... /\ value != oldValue)
+
+                                // if we already know that v_eq_value_lit is false, then
+                                // there is a conflict (-v_eq_old_value_lit \/ -v_eq_value_lit)
+                                if (((!bVal).getValueB v_eq_value_lit) = True) then
+                                    let cls = collectLiterals([ Negate v_eq_old_value_lit; Negate v_eq_value_lit; ])
+                                    cnflct <- Some (ref (newClauseFromList cls))
 
                             elif USE_BOUNDS then
 //                                 let oldBnds = (!bounds).get v
-//                            
+//
 //                                 if BitVector.bvULT intersection.Maximum oldBnds.Lower then
 //                                    let cls = collectLiterals([ negPABool;
 //                                                                Negate (!bounds).L_explanation.[v];
@@ -569,7 +601,6 @@ type Trail (sz:int) =
 //                                ()
                                     ()
 
-
             if USE_BOUNDS then
                 // Bounds theory hook.
 
@@ -628,7 +659,5 @@ type Trail (sz:int) =
 //                        // but I'm not sure whether we absolutely have to catch this case to
 //                        // get enough information for decisions/conflict resolution not to fail.
 //                        ()
-
-
 
         cnflct
