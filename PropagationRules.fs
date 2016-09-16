@@ -39,9 +39,9 @@ let visitOccurrence (s:State) (tRel:Ref<TheoryRelation>) =
 
     // For everything else we need to evaluate tRel
     | (Undefined, _) ->
-        if USE_BOUNDS && s.boundsEnabled then
-            tbndsEvaluate s tRel
         if not s.IsConflicted then
+            if USE_BOUNDS && s.boundsEnabled then
+                tbndsEvaluate s tRel        
             tEvaluate s tRel
 
     | (True, Undefined)

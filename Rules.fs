@@ -13,7 +13,7 @@ open PropagationRules
 open DecisionRules
 open ConflictRules
 open Explain
-
+open Z3Check
 
 let CheckTDB (s:State) =
     let mutable res = true
@@ -45,8 +45,9 @@ let CheckTDB (s:State) =
                 | Imp (_,l) ->
                     if abs l = tRel.getBoolVar then
                         is_propagated <- true
-                | MAssgnmnt (bv,_,_) -> if (List.exists (fun x -> x = bv) tRel.variableArguments) then
-                                                is_propagated <- true
+                | MAssgnmnt (bv,_,_) ->
+                    if (List.exists (fun x -> x = bv) tRel.variableArguments) then
+                        is_propagated <- true
                 | BAssgnmnt (bv,_,_) -> ()
             if not is_propagated then
                 printfn "Invariant violation; disagreement: %s -> (RLE:%s,Bnds:%s) x (B:%s,T:%s)"
@@ -167,6 +168,7 @@ let checkSat (s:State) (sandbox:State)  =
                 s.MarkUNSAT
             elif GENERALIZE then
                 let pre_cnflct = !s.GetConflictClause
+                assert(checkClauseIsFalse s.bVal pre_cnflct)
                 xTExplanationGeneralization s sandbox
 
                 if s.IsConflicted then

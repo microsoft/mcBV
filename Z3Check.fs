@@ -1,5 +1,6 @@
 ﻿module Z3Check
 
+open System.IO
 open System.Collections.Generic
 open Microsoft.Z3
 
@@ -387,9 +388,14 @@ let checkTrailConsistency (ctx:Context) (trail:Ref<Trail>) (db:Ref<Database>) (b
                 else
                     body)
 
+    let mutable rs = Status.UNKNOWN
     let slvr = ctx.MkSolver()
-    slvr.Add cnstr
-    let rs = slvr.Check()
+
+    try
+        slvr.Add cnstr
+        rs <- slvr.Check()
+    with ex ->
+        printfn "Z3> caught exception: %s" ex.Message
 
     match rs with
     | Status.SATISFIABLE ->
@@ -430,9 +436,15 @@ let checkTrailImpliesExplanation (ctx:Context) (trail:Ref<Trail>) (db:Ref<Databa
                 else
                     body)
 
+    let mutable rs = Status.UNKNOWN
     let slvr = ctx.MkSolver()
-    slvr.Add cnstr
-    let rs = slvr.Check()
+
+    try
+
+        slvr.Add cnstr
+        rs <- slvr.Check()
+    with ex ->
+        printfn "Z3> caught exception: %s" ex.Message
 
     match rs with
     | Status.UNSATISFIABLE ->
@@ -482,12 +494,17 @@ let checkProblemImpliesExplanation (ctx:Context) (trail:Ref<Trail>) (db:Ref<Data
                 else
                     body)
 
+    let mutable rs = Status.UNKNOWN
     let slvr = ctx.MkSolver()
 //    let p = ctx.MkParams()
 //    p.Add("timeout", 1000ul)
 //    slvr.Parameters <- p
-    slvr.Add cnstr
-    let rs = slvr.Check()
+
+    try
+        slvr.Add cnstr
+        rs <- slvr.Check()
+    with ex ->
+        printfn "Z3> caught exception: %s" ex.Message
 
     match rs with
     | Status.UNSATISFIABLE ->
@@ -536,6 +553,10 @@ let checkClauseConsistency (c:Clause) =
 
 let checkUNSAT (trail:Ref<Trail>) (db:Ref<Database>) (bvVal:Ref<BitVectorValuation>)
                (bounds:Ref<BoundsValuation>) (include_bounds:bool) =
+//    let logfn = Path.GetRandomFileName() + ".log"
+//    (printfn "Writing Z3 interaction log to %s" logfn)
+//    (Log.Open logfn) |> ignore
+
     let sttngs = Dictionary<string, string>()
     sttngs.Add("model", "true")
     sttngs.Add("unsat_core", "true")
@@ -556,6 +577,8 @@ let checkUNSAT (trail:Ref<Trail>) (db:Ref<Database>) (bvVal:Ref<BitVectorValuati
     with
     | :? System.AccessViolationException as ex -> printfn("Context disposal exception ignored.")
 
+//    Log.Close()
+
     if not res then
         polite <| (lazy "Trail is indeed UNSAT")
     else
@@ -569,6 +592,10 @@ let checkExplanation (trail:Ref<Trail>) (db:Ref<Database>) (bvVal:Ref<BitVectorV
     else
         let first = lit2var c.[1]
         if DBG then printfn "Z3> Checking validity of %s." (clauseToString c)
+
+//        let logfn = Path.GetRandomFileName() + ".log"
+//        (printfn "writing z3 interaction log to %s" logfn)
+//        (Log.Open logfn) |> ignore
 
         let sttngs = Dictionary<string, string>()
         sttngs.Add("model", "true")
@@ -602,7 +629,9 @@ let checkExplanation (trail:Ref<Trail>) (db:Ref<Database>) (bvVal:Ref<BitVectorV
             (!trail).forcePrint("Z3> At the failure, the trail was: ", bvVal, bounds)
             failwith "Explanation validation failed."
 
+//        Log.Close()
         ()
+
 
 let checkClauseValidity (ctx:Context) (db:Ref<Database>) (vars:Expr[]) (c:Clause) (silent:bool) =
 
@@ -643,6 +672,10 @@ let checkClauseValidity (ctx:Context) (db:Ref<Database>) (vars:Expr[]) (c:Clause
 let checkIsGeneralizedExplanationValid (db:Ref<Database>) (c:Clause) (silent:bool) =
     if DBG then printfn "Z3_VALIDITTY_CHECK> Checking validity of %s." (clauseToString c)
 
+//    let logfn = Path.GetRandomFileName() + ".log"
+//    (printfn "Writing Z3 interaction log to %s" logfn)
+//    (Log.Open logfn) |> ignore
+
     let sttngs = Dictionary<string, string>()
     sttngs.Add("model", "true")
     sttngs.Add("unsat_core", "true")
@@ -665,6 +698,8 @@ let checkIsGeneralizedExplanationValid (db:Ref<Database>) (c:Clause) (silent:boo
         System.GC.Collect()
     with
     | :? System.AccessViolationException as ex -> printfn("Context disposal exception ignored.")
+
+//    Log.Close()
 
     res
 
